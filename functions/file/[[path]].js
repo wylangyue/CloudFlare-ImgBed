@@ -653,6 +653,12 @@ async function handleR2File(context, fileId, encodedFileName, fileType) {
         const headers = new Headers();
         object.writeHttpMetadata(headers);
         setCommonHeaders(headers, encodedFileName, fileType, getFileCacheControl(context));
+        if (fileType?.startsWith('video/')) {
+            // CDN-cached full responses can swallow later Range requests. Video
+            // seeking must reach the origin so the R2 adapter can return 206.
+            headers.set('Cache-Control', 'private, no-store');
+            headers.set('CDN-Cache-Control', 'no-store');
+        }
 
         // 处理HEAD请求
         if (request.method === 'HEAD') {
@@ -671,6 +677,7 @@ async function handleR2File(context, fileId, encodedFileName, fileType) {
         }
 
         // 正常请求
+        headers.set('Content-Length', object.size.toString());
         return new Response(object.body, {
             status: 200,
             headers,

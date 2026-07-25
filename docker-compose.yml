@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
   imgbed:
-    image: marseventh/cloudflare-imgbed:latest
+    build: .
+    image: cloudflare-imgbed:local
     ports:
       - "7658:8080"
     volumes:
